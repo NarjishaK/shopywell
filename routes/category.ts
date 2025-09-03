@@ -25,5 +25,6 @@ const router = express.Router();
 
 //category routes
 router.post("/", upload, categoryController.createCategory);
+router.get("/", categoryController.getAllCategories);
 
 export default router;

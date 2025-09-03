@@ -53,3 +53,19 @@ export const createCategory = asyncHandler(async (req: any, res: any) => {
     });
   }
 });
+
+
+
+//Get all categories---------------------------------------------------------------------------------
+export const getAllCategories = asyncHandler(async (req: any, res: any) => {
+  try {
+    const categories = await Category.find();
+    return res.status(200).json(categories);
+  } catch (error: any) {
+    console.error("Error fetching categories:", error.message);
+    return res.status(500).json({
+      error: "Server error",
+      message: error.message,
+    });
+  }
+});
