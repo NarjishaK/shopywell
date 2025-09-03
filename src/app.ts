@@ -5,6 +5,7 @@ import connectDB from "../config/db";
 import path from 'path';
 import userRoutes from "../routes/user"; 
 import categoryRoutes from "../routes/category";
+import subcategoryRoutes from "../routes/subcategory";
 
 dotenv.config();
 
@@ -29,6 +30,7 @@ app.use((req: Request, res: Response, next) => {
 // Routes
 app.use("/users", userRoutes);
 app.use("/categories", categoryRoutes);
+app.use("/subcategories", subcategoryRoutes);
 
 app.get("/", (req: Request, res: Response) => {
   res.send("API is running...");
