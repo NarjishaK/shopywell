@@ -59,3 +59,57 @@ export const createProduct = async (req: Request, res: Response) => {
     return res.status(500).json({ message: "Server error", error });
   }
 };
+
+
+// Get all products with pagination 10 products per page------------------------------------------------------------------------------------------------
+export const getAllProducts = async (req: Request, res: Response) => {
+  try {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = 10;
+    const skip = (page - 1) * limit;
+
+    const products = await Product.find()
+      .populate('category', 'name') 
+      .populate('subCategory', 'name') 
+      .skip(skip)
+      .limit(limit);
+
+    const totalProducts = await Product.countDocuments();
+    const totalPages = Math.ceil(totalProducts / limit);
+
+    return res.status(200).json({
+      message: "Products fetched successfully",
+      products,
+      page,
+      totalPages,
+      totalProducts
+    });
+  } catch (error) {
+    console.error("Error fetching products:", error);
+    return res.status(500).json({ message: "Server error", error });
+  }
+};
+
+// Get product by ID------------------------------------------------------------------------------------------------
+export const getProductById = async (req: Request, res: Response) => {
+  try {
+    const productId = req.params.id;
+
+    const product = await Product.findById(productId)
+      .populate('category', 'name') 
+      .populate('subCategory', 'name');
+
+    if (!product) {
+      console.log("Product not found with ID:", productId);
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    return res.status(200).json({
+      message: "Product fetched successfully",
+      product
+    });
+  } catch (error) {
+    console.error("Error fetching product by ID:", error);
+    return res.status(500).json({ message: "Server error", error });
+  }
+};
