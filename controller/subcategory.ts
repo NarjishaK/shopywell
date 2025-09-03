@@ -51,3 +51,21 @@ export const createSubCategory = asyncHandler(async (req: any, res: any) => {
     });
   }
 });
+
+
+//Get all subcategories---------------------------------------------------------------------------------
+export const getAllSubCategories = asyncHandler(async (req: any, res: any) => {
+  try {
+    const subcategories = await SubCategory.find().populate('mainCategory', 'name');
+    return res.status(200).json({
+      message: "Subcategories fetched successfully",
+      subcategories,
+    });
+  } catch (error: any) {
+    console.error("Error fetching subcategories:", error.message);
+    return res.status(500).json({
+      error: "Server error",
+      message: error.message,
+    });
+  }
+});
