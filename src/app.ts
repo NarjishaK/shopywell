@@ -2,7 +2,9 @@ import express from "express";
 import type { Request, Response } from "express";
 import dotenv from "dotenv";
 import connectDB from "../config/db"; 
+import path from 'path';
 import userRoutes from "../routes/user"; 
+import categoryRoutes from "../routes/category";
 
 dotenv.config();
 
@@ -14,6 +16,7 @@ const app = express();
 // Middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
+app.use(express.static(path.join('public')));
 
 // Add CORS headers if needed
 app.use((req: Request, res: Response, next) => {
@@ -25,6 +28,7 @@ app.use((req: Request, res: Response, next) => {
 
 // Routes
 app.use("/users", userRoutes);
+app.use("/categories", categoryRoutes);
 
 app.get("/", (req: Request, res: Response) => {
   res.send("API is running...");
