@@ -7,6 +7,7 @@ import userRoutes from "../routes/user";
 import categoryRoutes from "../routes/category";
 import subcategoryRoutes from "../routes/subcategory";
 import productRoutes from "../routes/product";
+import cartRoutes from "../routes/cart";
 
 dotenv.config();
 
@@ -33,6 +34,7 @@ app.use("/users", userRoutes);
 app.use("/categories", categoryRoutes);
 app.use("/subcategories", subcategoryRoutes);
 app.use("/products", productRoutes);
+app.use("/cart", cartRoutes);
 
 app.get("/", (req: Request, res: Response) => {
   res.send("API is running...");
