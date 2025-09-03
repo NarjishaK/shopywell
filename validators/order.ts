@@ -1,4 +1,4 @@
-import {z} from "zod";
+import { z } from "zod";
 
 const orderItemSchema = z.object({
   product: z
@@ -15,6 +15,14 @@ const orderItemSchema = z.object({
     .default(1),
 });
 
+const addressSchema = z.object({
+  street: z.string().min(1, "Street is required"),
+  city: z.string().min(1, "City is required"),
+  state: z.string().min(1, "State is required"),
+  zip: z.string().min(1, "ZIP code is required"),
+  country: z.string().min(1, "Country is required"),
+});
+
 export const orderSchema = z.object({
   user: z
     .string({
@@ -27,7 +35,12 @@ export const orderSchema = z.object({
     .array(orderItemSchema)
     .min(1, "Order must have at least one item"),
 
-  // totalAmount is calculated server-side, so it's optional here
+  // Option 1: Accept full address object
+  shippingAddress: addressSchema,
+
+  // Option 2: Accept address index (alternative approach)
+  // addressIndex: z.number().min(0, "Address index must be non-negative").optional(),
+
   totalAmount: z.number().optional().default(0),
 
   status: z
@@ -35,18 +48,3 @@ export const orderSchema = z.object({
     .optional()
     .default("Pending"),
 });
-
-// Test function to validate the schema
-export const testValidation = (data: any) => {
-  console.log("Testing validation with:", JSON.stringify(data, null, 2));
-  const result = orderSchema.safeParse(data);
-  if (!result.success) {
-    console.log(
-      "Validation errors:",
-      JSON.stringify(result.error.format(), null, 2)
-    );
-  } else {
-    console.log("Validation successful:", result.data);
-  }
-  return result;
-};

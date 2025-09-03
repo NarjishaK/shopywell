@@ -2,6 +2,7 @@ import Order from "models/order";
 import Product from "models/product";
 import asyncHandler from "express-async-handler";
 import { orderSchema } from "validators/order";
+import User from "models/user";
 
 //create order --------------------------------------------------------------------------------
 
@@ -28,7 +29,6 @@ export const createOrder = asyncHandler(async (req: any, res: any) => {
         "Validation errors:",
         JSON.stringify(parsed.error.errors, null, 2)
       );
-      // Format validation errors
       const formattedErrors = parsed.error.errors.map((err) => ({
         field: err.path.join("."),
         message: err.message,
@@ -44,7 +44,7 @@ export const createOrder = asyncHandler(async (req: any, res: any) => {
     console.log("Validation passed!");
     console.log("Parsed data:", JSON.stringify(parsed.data, null, 2));
 
-    const { user, products } = parsed.data;
+    const { user, products, shippingAddress } = parsed.data;
     const userId = req.params.userId;
 
     if (user !== userId) {
@@ -53,8 +53,16 @@ export const createOrder = asyncHandler(async (req: any, res: any) => {
       });
     }
 
+    // Verify user exists
+    const userDoc = await User.findById(userId);
+    if (!userDoc) {
+      return res.status(404).json({
+        error: "User not found",
+      });
+    }
+
     // Fetch actual product prices from database
-    const productIds = products.map(item => item.product);
+    const productIds = products.map((item: any) => item.product);
     const dbProducts = await Product.find({ _id: { $in: productIds } }).select('_id price');
     
     if (dbProducts.length !== products.length) {
@@ -67,7 +75,7 @@ export const createOrder = asyncHandler(async (req: any, res: any) => {
       dbProducts.map(product => [product._id.toString(), product.price])
     );
 
-    const productsWithPrices = products.map((item) => {
+    const productsWithPrices = products.map((item: any) => {
       const actualPrice = priceMap.get(item.product);
       if (!actualPrice) {
         throw new Error(`Price not found for product: ${item.product}`);
@@ -80,10 +88,11 @@ export const createOrder = asyncHandler(async (req: any, res: any) => {
 
     const totalAmount = calculateTotalAmount(productsWithPrices);
 
-    // Create new order
+    // Create new order with selected shipping address
     const newOrder = new Order({
       user,
       products: productsWithPrices,
+      shippingAddress,
       totalAmount,
       status: "Pending",
     });
@@ -101,12 +110,11 @@ export const createOrder = asyncHandler(async (req: any, res: any) => {
 });
 
 
-
 //get orders by userId--------------------------------------------------------------------------------
 export const getOrdersByUserId = asyncHandler(async (req: any, res: any) => {
   try {
     const userId = req.params.userId;
-    const orders = await Order.find({ user: userId }).populate('products.product', 'name price description image category subCategory size color discount');
+    const orders = await Order.find({ user: userId }).populate('products.product', 'name price description image category subCategory size color discount').populate('user', 'name email addresses phone');
 
     if (!orders || orders.length === 0) {
       console.log("No orders found for user ID:", userId);

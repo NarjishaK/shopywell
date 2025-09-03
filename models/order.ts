@@ -1,3 +1,4 @@
+// Updated Order Model - models/order.ts
 import mongoose from "mongoose";
 import { IOrder } from "../types/order";
 
@@ -20,8 +21,34 @@ const orderSchema = new mongoose.Schema(
           required: true,
           min: 1,
         },
+        price: {
+          type: Number,
+          required: true,
+        },
       },
     ],
+    shippingAddress: {
+      street: {
+        type: String,
+        required: true,
+      },
+      city: {
+        type: String,
+        required: true,
+      },
+      state: {
+        type: String,
+        required: true,
+      },
+      zip: {
+        type: String,
+        required: true,
+      },
+      country: {
+        type: String,
+        required: true,
+      },
+    },
     totalAmount: {
       type: Number,
       required: true,
@@ -37,3 +64,5 @@ const orderSchema = new mongoose.Schema(
 
 const Order = mongoose.model<IOrder>("Order", orderSchema);
 export default Order;
+
+
