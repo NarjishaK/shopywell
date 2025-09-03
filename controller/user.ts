@@ -14,6 +14,7 @@ export const createUser = asyncHandler(async (req: any, res: any) => {
       console.log("Validation errors:", parsed.error.errors);
       return res.status(400).json({
         error: "Validation failed",
+        details: parsed.error.errors,
       });
     }
 
@@ -58,6 +59,48 @@ export const createUser = asyncHandler(async (req: any, res: any) => {
     });
   }
 });
+
+
+// login user
+export const loginUser = asyncHandler(async (req: any, res: any) => {
+  const { email, password } = req.body;
+
+  try {
+    const user = await Users.findOne({ email });
+
+    if (user && (await user.matchPassword(password))) {
+      const token = jwt.sign(
+        { id: user._id },
+        process.env.JWT_SECRET as string,
+        {
+          expiresIn: "1d",
+        }
+      );
+
+      res.status(200).json({
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        token,
+      });
+    } else {
+      res.status(401).json({
+        error: "Invalid email or password",
+      });
+    }
+  } catch (error) {
+    console.error("Error logging in user:", error);
+    res.status(500).json({
+      error: "Internal server error",
+    });
+  }
+});
+
+
+
+
+
+
 
 //get user by id
 export const getUserById = asyncHandler(async (req: any, res: any) => {
