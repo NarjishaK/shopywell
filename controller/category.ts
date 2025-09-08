@@ -1,6 +1,7 @@
 // controller/category.ts
 import Category from "models/category";
 import asyncHandler from "express-async-handler";
+import { sendSuccess, sendError } from "utils/common";
 
 //Create a new category---------------------------------------------------------------------------------
 export const createCategory = asyncHandler(async (req: any, res: any) => {
@@ -21,13 +22,7 @@ export const createCategory = asyncHandler(async (req: any, res: any) => {
     const categoryExists = await Category.findOne({ name });
     if (categoryExists) {
       console.log("Category already exists");
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Category already exists",
-          error: "Category already exists",
-        });
+      return sendError(res, 400, "Category already exists");
     }
 
     // Create new category
@@ -36,18 +31,10 @@ export const createCategory = asyncHandler(async (req: any, res: any) => {
       image,
     });
 
-    return res.status(201).json({
-      success: true,
-      message: "Category created successfully",
-      category,
-    });
+    return sendSuccess(res, 201, "Category created successfully", { category });
   } catch (error: any) {
     console.error("Error creating category:", error.message);
-    return res.status(500).json({
-      success: false,
-      message: error.message,
-      error: "Server error",
-    });
+    return sendError(res, 500, error.message);
   }
 });
 
@@ -55,17 +42,9 @@ export const createCategory = asyncHandler(async (req: any, res: any) => {
 export const getAllCategories = asyncHandler(async (req: any, res: any) => {
   try {
     const categories = await Category.find();
-    return res.status(200).json({
-      success: true,
-      message: "Categories fetched successfully",
-      categories,
-    });
+    return sendSuccess(res, 200, "Categories fetched successfully", { categories });
   } catch (error: any) {
     console.error("Error fetching categories:", error.message);
-    return res.status(500).json({
-      success: false,
-      message: error.message,
-      error: "Server error",
-    });
+    return sendError(res, 500, error.message);
   }
 });

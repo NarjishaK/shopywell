@@ -1,5 +1,7 @@
 import Cart from "models/cart";
 import asyncHandler from "express-async-handler";
+import { sendSuccess, sendError } from "utils/common";
+import { send } from "process";
 
 //add to cart--------------------------------------------------------------------------------
 export const addToCart = asyncHandler(async (req: any, res: any) => {
@@ -7,11 +9,7 @@ export const addToCart = asyncHandler(async (req: any, res: any) => {
     // Check if body exists
     if (!req.body || Object.keys(req.body).length === 0) {
       console.log("Empty request body");
-      return res.status(400).json({
-        success: false,
-        message: "Request body is empty",
-        error: "Request body is empty",
-      });
+      return sendError(res, 400, "Request body is empty");
     }
     const { products } = req.body;
     const userId = req.params.userId;
@@ -48,20 +46,10 @@ export const addToCart = asyncHandler(async (req: any, res: any) => {
 
     await cart.save();
     console.log("Cart saved successfully");
-    return res.status(200).json({
-      success: true,
-
-      message: "Cart updated successfully",
-      cart,
-    });
+    return sendSuccess(res, 200, "Cart updated successfully", { cart });
   } catch (error) {
     console.error("Error updating cart:", error);
-    return res.status(500).json({
-      success: false,
-
-      message: "Server error",
-      error,
-    });
+    return sendError(res, 500, "Server error");
   }
 });
 
@@ -71,11 +59,7 @@ export const updateCart = asyncHandler(async (req: any, res: any) => {
     // Check if body exists
     if (!req.body || Object.keys(req.body).length === 0) {
       console.log("Empty request body");
-      return res.status(400).json({
-        success: false,
-        message: "Request body is empty",
-        error: "Request body is empty",
-      });
+      return sendError(res, 400, "Request body is empty");
     }
     const { products } = req.body;
     const userId = req.params.userId;
@@ -89,26 +73,14 @@ export const updateCart = asyncHandler(async (req: any, res: any) => {
       cart.products = products;
       await cart.save();
       console.log("Cart saved successfully");
-      return res.status(200).json({
-        success: true,
-        message: "Cart updated successfully",
-        cart,
-      });
+      return sendSuccess(res, 200, "Cart updated successfully", { cart });
     } else {
       console.log("Cart not found for the user");
-      return res.status(404).json({
-        success: false,
-        message: "Cart not found for the user",
-        error: "Cart not found for the user",
-      });
+      return sendError(res, 404, "Cart not found for the user");
     }
   } catch (error) {
     console.error("Error updating cart:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Server error",
-      error,
-    });
+    return sendError(res, 500, "Server error");
   }
 });
 
@@ -123,25 +95,13 @@ export const getCartByUserId = asyncHandler(async (req: any, res: any) => {
 
     if (!cart) {
       console.log("Cart not found for user ID:", userId);
-      return res.status(404).json({
-        success: false,
-        message: "Cart not found for the user",
-        error: "Cart not found for the user",
-      });
+      return sendError(res, 404, "Cart not found for the user");
     }
 
-    return res.status(200).json({
-      success: true,
-      message: "Cart fetched successfully",
-      cart,
-    });
+    return sendSuccess(res, 200, "Cart fetched successfully", { cart });
   } catch (error) {
     console.error("Error fetching cart:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Server error",
-      error,
-    });
+    return sendError(res, 500, "Server error");
   }
 });
 
@@ -153,25 +113,13 @@ export const clearCartByUserId = asyncHandler(async (req: any, res: any) => {
 
     if (!cart) {
       console.log("Cart not found for user ID:", userId);
-      return res.status(404).json({
-        success: false,
-        message: "Cart not found for the user",
-        error: "Cart not found for the user",
-      });
+      return sendError(res, 404, "Cart not found for the user");
     }
 
-    return res.status(200).json({
-      success: true,
-
-      message: "Cart cleared successfully",
-    });
+    return sendSuccess(res, 200, "Cart cleared successfully", {});
   } catch (error) {
     console.error("Error clearing cart:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Server error",
-      error,
-    });
+    return sendError(res, 500, "Server error");
   }
 });
 
@@ -185,11 +133,7 @@ export const deleteCartItemByProductId = asyncHandler(
       const cart = await Cart.findOne({ user: userId });
       if (!cart) {
         console.log("Cart not found for user ID:", userId);
-        return res.status(404).json({
-          success: false,
-          message: "Cart not found for the user",
-          error: "Cart not found for the user",
-        });
+        return sendError(res, 404, "Cart not found for the user");
       }
 
       const initialProductCount = cart.products.length;
@@ -199,26 +143,14 @@ export const deleteCartItemByProductId = asyncHandler(
 
       if (cart.products.length === initialProductCount) {
         console.log("Product not found in cart:", productId);
-        return res.status(404).json({
-          success: false,
-          message: "Product not found in cart",
-          error: "Product not found in cart",
-        });
+        return sendError(res, 404, "Product not found in cart");
       }
 
       await cart.save();
-      return res.status(200).json({
-        success: true,
-        message: "Product removed from cart successfully",
-        cart,
-      });
+      return sendSuccess(res, 200, "Product removed from cart successfully", { cart });
     } catch (error) {
       console.error("Error removing product from cart:", error);
-      return res.status(500).json({
-        success: false,
-        message: "Server error",
-        error,
-      });
+      return sendError(res, 500, "Server error");
     }
   }
 );

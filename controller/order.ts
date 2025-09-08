@@ -2,6 +2,7 @@ import Order from "models/order";
 import Product from "models/product";
 import asyncHandler from "express-async-handler";
 import User from "models/user";
+import { sendSuccess, sendError } from "utils/common";
 
 //create order --------------------------------------------------------------------------------
 
@@ -19,32 +20,20 @@ export const createOrder = asyncHandler(async (req: any, res: any) => {
     // Check if body exists
     if (!req.body || Object.keys(req.body).length === 0) {
       console.log("Empty request body");
-      return res.status(400).json({
-        success: false,
-        message: "Request body is empty",
-        error: "Request body is empty",
-      });
+      return sendError(res, 400, "Request body is empty");
     }
 
     const { user, products, shippingAddress } = req.body;
     const userId = req.params.userId;
 
     if (user !== userId) {
-      return res.status(400).json({
-        success: false,
-        message: "User ID in body does not match URL parameter",
-        error: "User ID in body does not match URL parameter",
-      });
+      return sendError(res, 400, "User ID mismatch");
     }
 
     // Verify user exists
     const userDoc = await User.findById(userId);
     if (!userDoc) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-        error: "User not found",
-      });
+      return sendError(res, 400, "User does not exist");
     }
 
     // Fetch actual product prices from database
@@ -54,11 +43,7 @@ export const createOrder = asyncHandler(async (req: any, res: any) => {
     );
 
     if (dbProducts.length !== products.length) {
-      return res.status(400).json({
-        success: false,
-        message: "One or more products not found",
-        error: "One or more products not found",
-      });
+      return sendError(res, 400, "One or more products are invalid");
     }
 
     const priceMap = new Map(
@@ -89,18 +74,10 @@ export const createOrder = asyncHandler(async (req: any, res: any) => {
 
     const savedOrder = await newOrder.save();
     console.log("Order created successfully:", savedOrder);
-    res.status(201).json({
-      success: true,
-      message: "Order created successfully",
-      order: savedOrder,
-    });
+    return sendSuccess(res, 201, "Order created successfully", { order: savedOrder });
   } catch (error) {
     console.error("Error creating order:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Server error",
-      error,
-    });
+    return sendError(res, 500, "Server error");
   }
 });
 
@@ -117,23 +94,12 @@ export const getOrdersByUserId = asyncHandler(async (req: any, res: any) => {
 
     if (!orders || orders.length === 0) {
       console.log("No orders found for user ID:", userId);
-      return res.status(404).json({
-        success: false,
-        message: "No orders found for the user",
-      });
+      return sendError(res, 404, "No orders found for the user");
     }
 
-    return res.status(200).json({
-      success: true,
-      message: "Orders fetched successfully",
-      orders,
-    });
+    return sendSuccess(res, 200, "Orders fetched successfully", { orders });
   } catch (error) {
     console.error("Error fetching orders:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Server error",
-      error,
-    });
+    return sendError(res, 500, "Server error");
   }
 });

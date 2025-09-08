@@ -3,6 +3,7 @@ import Category from "models/category";
 import SubCategory from "models/subcategory";
 import { IProduct } from "types/product";
 import { Request, Response } from "express";
+import { sendSuccess, sendError } from "utils/common";
 
 // Create a new product
 export const createProduct = async (req: Request, res: Response) => {
@@ -12,21 +13,21 @@ export const createProduct = async (req: Request, res: Response) => {
     // Validate required fields
     if (!name || !description || !price || !category || !subCategory) {
       console.log("Name, description, price, category, and subCategory are required.");
-      return res.status(400).json({ message: "Name, description, price, category, and subCategory are required." });
+      return sendError(res, 400, "Name, description, price, category, and subCategory are required.");
     }
 
     // Check if category exists
     const categoryExists = await Category.findById(category);
     if (!categoryExists) {
         console.log("Category does not exist.");
-      return res.status(400).json({ message: "Category does not exist." });
+      return sendError(res, 400, "Category does not exist.");
     }
 
     // Check if subcategory exists
     const subCategoryExists = await SubCategory.findById(subCategory);
     if (!subCategoryExists) {
       console.log("SubCategory does not exist.");
-      return res.status(400).json({ message: "SubCategory does not exist." });
+      return sendError(res, 400, "SubCategory does not exist.");
     }
 
     // Extract S3 image URLs from uploaded files
@@ -56,7 +57,7 @@ export const createProduct = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("Error creating product:", error);
-    return res.status(500).json({ message: "Server error", error });
+    return sendError(res, 500, "Server error");
   }
 };
 
@@ -77,16 +78,14 @@ export const getAllProducts = async (req: Request, res: Response) => {
     const totalProducts = await Product.countDocuments();
     const totalPages = Math.ceil(totalProducts / limit);
 
-    return res.status(200).json({
-      message: "Products fetched successfully",
-      products,
-      page,
-      totalPages,
-      totalProducts
+    return sendSuccess(res, 200, "Products fetched successfully", { 
+      products, 
+      currentPage: page, 
+      totalPages 
     });
   } catch (error) {
     console.error("Error fetching products:", error);
-    return res.status(500).json({ message: "Server error", error });
+    return sendError(res, 500, "Server error");
   }
 };
 
@@ -101,15 +100,12 @@ export const getProductById = async (req: Request, res: Response) => {
 
     if (!product) {
       console.log("Product not found with ID:", productId);
-      return res.status(404).json({ message: "Product not found" });
+      return sendError(res, 404, "Product not found");
     }
 
-    return res.status(200).json({
-      message: "Product fetched successfully",
-      product
-    });
+    return sendSuccess(res, 200, "Product fetched successfully", { product });
   } catch (error) {
     console.error("Error fetching product by ID:", error);
-    return res.status(500).json({ message: "Server error", error });
+    return sendError(res, 500, "Server error");
   }
 };

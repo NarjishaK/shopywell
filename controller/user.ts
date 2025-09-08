@@ -1,5 +1,6 @@
 import asyncHandler from "express-async-handler";
 import Users from "../models/user";
+import { sendSuccess, sendError } from "../utils/common.ts";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 dotenv.config();
@@ -12,7 +13,8 @@ export const createUser = asyncHandler(async (req: any, res: any) => {
     // Check if user exists
     const userExists = await Users.findOne({ email });
     if (userExists) {
-      return res.status(400).json({ error: "User already exists" });
+        console.log("User already exists");
+      return sendError(res, 400, "User already exists");
     }
 
     // Create user
@@ -25,30 +27,20 @@ export const createUser = asyncHandler(async (req: any, res: any) => {
     });
 
     if (user) {
-      return res.status(201).json({
-        success: true,
-        message: "User created successfully",
-        user: {
-          _id: user._id,
-          name: user.name,
-          email: user.email,
-          addresses: user.addresses,
-          phone: user.phone,
-        },
+      return sendSuccess(res, 201, "User created successfully", {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        addresses: user.addresses,
+        phone: user.phone,
       });
     } else {
       console.log("Invalid user data");
-      return res.status(400).json({
-        success: false,
-        error: "Invalid user data",
-        message: "Invalid user data",
-      });
+      return sendError(res, 400, "Invalid user data");
     }
   } catch (error: any) {
     console.error("Error creating user:", error.message);
-    res
-      .status(500)
-      .json({ success: false, error: "Server error", message: error.message });
+    return sendError(res, 500, error.message);
   }
 });
 
@@ -68,28 +60,21 @@ export const loginUser = asyncHandler(async (req: any, res: any) => {
         }
       );
 
-      res.status(200).json({
-        success: true,
-        message: "User logged in successfully",
+      return sendSuccess(res, 200, "Login successful", {
         _id: user._id,
         name: user.name,
         email: user.email,
+        addresses: user.addresses,
+        phone: user.phone,
         token,
       });
     } else {
-      res.status(401).json({
-        success: false,
-        message: "Invalid email or password",
-        error: "Invalid email or password",
-      });
+      console.log("Invalid email or password");
+      return sendError(res, 401, "Invalid email or password");
     }
   } catch (error) {
     console.error("Error logging in user:", error);
-    res.status(500).json({
-      success: false,
-      message: "Internal server error",
-      error: "Internal server error",
-    });
+    return sendError(res, 500, "Internal server error");
   }
 });
 
@@ -100,23 +85,13 @@ export const getUserById = asyncHandler(async (req: any, res: any) => {
     const user = await Users.findById(req.params.id).select("-password");
     if (user) {
       console.log("User found:", user);
-      res.json(user);
+      return sendSuccess(res, 200, "User fetched successfully", user);
     } else {
       console.log("User not found");
-      res.status(404).json({
-        success: false,
-        message: "User not found",
-        error: "User not found",
-      });
+      return sendError(res, 404, "User not found");
     }
   } catch (error) {
     console.error("Error fetching user:", error);
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Internal server error",
-        error: "Internal server error",
-      });
+    return sendError(res, 500, "Internal server error");
   }
 });
