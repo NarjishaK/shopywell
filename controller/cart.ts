@@ -1,7 +1,6 @@
 import Cart from "models/cart";
 import asyncHandler from "express-async-handler";
 import { sendSuccess, sendError } from "utils/common";
-import { send } from "process";
 
 //add to cart--------------------------------------------------------------------------------
 export const addToCart = asyncHandler(async (req: any, res: any) => {
