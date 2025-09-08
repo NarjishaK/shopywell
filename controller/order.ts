@@ -1,13 +1,17 @@
 import Order from "models/order";
 import Product from "models/product";
 import asyncHandler from "express-async-handler";
-import { orderSchema } from "validators/order";
 import User from "models/user";
 
 //create order --------------------------------------------------------------------------------
 
-const calculateTotalAmount = (products: { quantity: number; price: number }[]) => {
-  return products.reduce((total, item) => total + item.quantity * item.price, 0);
+const calculateTotalAmount = (
+  products: { quantity: number; price: number }[]
+) => {
+  return products.reduce(
+    (total, item) => total + item.quantity * item.price,
+    0
+  );
 };
 
 export const createOrder = asyncHandler(async (req: any, res: any) => {
@@ -16,39 +20,19 @@ export const createOrder = asyncHandler(async (req: any, res: any) => {
     if (!req.body || Object.keys(req.body).length === 0) {
       console.log("Empty request body");
       return res.status(400).json({
+        success: false,
+        message: "Request body is empty",
         error: "Request body is empty",
       });
     }
 
-    // Validate request body with Zod
-    console.log("Starting validation...");
-    const parsed = orderSchema.safeParse(req.body);
-    if (!parsed.success) {
-      console.log("Validation failed!");
-      console.log(
-        "Validation errors:",
-        JSON.stringify(parsed.error.errors, null, 2)
-      );
-      const formattedErrors = parsed.error.errors.map((err) => ({
-        field: err.path.join("."),
-        message: err.message,
-        received: err.code === "invalid_type"
-          ? typeof (err as any).received
-          : undefined,
-      }));
-      return res.status(400).json({
-        error: "Validation failed",
-        details: formattedErrors,
-      });
-    }   
-    console.log("Validation passed!");
-    console.log("Parsed data:", JSON.stringify(parsed.data, null, 2));
-
-    const { user, products, shippingAddress } = parsed.data;
+    const { user, products, shippingAddress } = req.body;
     const userId = req.params.userId;
 
     if (user !== userId) {
       return res.status(400).json({
+        success: false,
+        message: "User ID in body does not match URL parameter",
         error: "User ID in body does not match URL parameter",
       });
     }
@@ -57,22 +41,28 @@ export const createOrder = asyncHandler(async (req: any, res: any) => {
     const userDoc = await User.findById(userId);
     if (!userDoc) {
       return res.status(404).json({
+        success: false,
+        message: "User not found",
         error: "User not found",
       });
     }
 
     // Fetch actual product prices from database
     const productIds = products.map((item: any) => item.product);
-    const dbProducts = await Product.find({ _id: { $in: productIds } }).select('_id price');
-    
+    const dbProducts = await Product.find({ _id: { $in: productIds } }).select(
+      "_id price"
+    );
+
     if (dbProducts.length !== products.length) {
       return res.status(400).json({
+        success: false,
+        message: "One or more products not found",
         error: "One or more products not found",
       });
     }
 
     const priceMap = new Map(
-      dbProducts.map(product => [product._id.toString(), product.price])
+      dbProducts.map((product) => [product._id.toString(), product.price])
     );
 
     const productsWithPrices = products.map((item: any) => {
@@ -100,33 +90,50 @@ export const createOrder = asyncHandler(async (req: any, res: any) => {
     const savedOrder = await newOrder.save();
     console.log("Order created successfully:", savedOrder);
     res.status(201).json({
+      success: true,
       message: "Order created successfully",
       order: savedOrder,
     });
   } catch (error) {
     console.error("Error creating order:", error);
-    return res.status(500).json({ message: "Server error", error });
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+      error,
+    });
   }
 });
-
 
 //get orders by userId--------------------------------------------------------------------------------
 export const getOrdersByUserId = asyncHandler(async (req: any, res: any) => {
   try {
     const userId = req.params.userId;
-    const orders = await Order.find({ user: userId }).populate('products.product', 'name price description image category subCategory size color discount').populate('user', 'name email addresses phone');
+    const orders = await Order.find({ user: userId })
+      .populate(
+        "products.product",
+        "name price description image category subCategory size color discount"
+      )
+      .populate("user", "name email addresses phone");
 
     if (!orders || orders.length === 0) {
       console.log("No orders found for user ID:", userId);
-      return res.status(404).json({ message: "No orders found for the user" });
+      return res.status(404).json({
+        success: false,
+        message: "No orders found for the user",
+      });
     }
 
     return res.status(200).json({
+      success: true,
       message: "Orders fetched successfully",
       orders,
     });
   } catch (error) {
     console.error("Error fetching orders:", error);
-    return res.status(500).json({ message: "Server error", error });
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+      error,
+    });
   }
 });
