@@ -4,6 +4,8 @@ import multer from "multer";
 import multerS3 from "multer-s3";
 import s3Client from "../config/s3";
 import dotenv from "dotenv";
+import { validate } from "../middleware/validation";
+import { categorySchema } from "../validators/category";
 dotenv.config();
 
 const upload = multer({
@@ -24,7 +26,7 @@ const upload = multer({
 const router = express.Router();
 
 //category routes
-router.post("/", upload, categoryController.createCategory);
+router.post("/", upload, validate(categorySchema), categoryController.createCategory);
 router.get("/", categoryController.getAllCategories);
 
 export default router;

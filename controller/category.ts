@@ -1,7 +1,6 @@
 // controller/category.ts
 import Category from "models/category";
 import asyncHandler from "express-async-handler";
-import { categorySchema } from "validators/category";
 
 //Create a new category---------------------------------------------------------------------------------
 export const createCategory = asyncHandler(async (req: any, res: any) => {
@@ -17,22 +16,18 @@ export const createCategory = asyncHandler(async (req: any, res: any) => {
       image: imageUrl,
     };
 
-    // Validate request body with Zod
-    const parsed = categorySchema.safeParse(categoryData);
-    if (!parsed.success) {
-      console.log("Validation failed:", parsed.error.errors);
-      return res.status(400).json({
-        error: "Validation failed",
-        details: parsed.error.errors,
-      });
-    }
-
-    const { name, image } = parsed.data;
+    const { name, image } = categoryData;
     // Check if category already exists
     const categoryExists = await Category.findOne({ name });
     if (categoryExists) {
       console.log("Category already exists");
-      return res.status(400).json({ error: "Category already exists" });
+      return res
+        .status(400)
+        .json({
+          success: false,
+          message: "Category already exists",
+          error: "Category already exists",
+        });
     }
 
     // Create new category
@@ -42,30 +37,35 @@ export const createCategory = asyncHandler(async (req: any, res: any) => {
     });
 
     return res.status(201).json({
+      success: true,
       message: "Category created successfully",
       category,
     });
   } catch (error: any) {
     console.error("Error creating category:", error.message);
     return res.status(500).json({
-      error: "Server error",
+      success: false,
       message: error.message,
+      error: "Server error",
     });
   }
 });
-
-
 
 //Get all categories---------------------------------------------------------------------------------
 export const getAllCategories = asyncHandler(async (req: any, res: any) => {
   try {
     const categories = await Category.find();
-    return res.status(200).json(categories);
+    return res.status(200).json({
+      success: true,
+      message: "Categories fetched successfully",
+      categories,
+    });
   } catch (error: any) {
     console.error("Error fetching categories:", error.message);
     return res.status(500).json({
-      error: "Server error",
+      success: false,
       message: error.message,
+      error: "Server error",
     });
   }
 });

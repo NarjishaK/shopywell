@@ -1,7 +1,6 @@
 // controller/subcategory.ts
 import SubCategory from "models/subcategory";
 import asyncHandler from "express-async-handler";
-import { subcategorySchema } from "validators/subcategory";
 import Category from "models/category";
 
 //Create a new subcategory---------------------------------------------------------------------------------
@@ -9,28 +8,26 @@ export const createSubCategory = asyncHandler(async (req: any, res: any) => {
   try {
     const { name, mainCategory } = req.body;
 
-    // Validate request body with Zod
-    const parsed = subcategorySchema.safeParse({ name, mainCategory });
-    if (!parsed.success) {
-      console.log("Validation failed:", parsed.error.errors);
-      return res.status(400).json({
-        error: "Validation failed",
-        details: parsed.error.errors,
-      });
-    }
-
     // Check if main category exists
     const categoryExists = await Category.findById(mainCategory);
     if (!categoryExists) {
       console.log("Main category does not exist");
-      return res.status(400).json({ error: "Main category does not exist" });
+      return res.status(400).json({
+        success: false,
+        message: "Main category does not exist",
+        error: "Main category does not exist",
+      });
     }
 
-    // Check if subcategory already exists  
+    // Check if subcategory already exists
     const subcategoryExists = await SubCategory.findOne({ name, mainCategory });
     if (subcategoryExists) {
       console.log("Subcategory already exists");
-      return res.status(400).json({ error: "Subcategory already exists" });
+      return res.status(400).json({
+        success: false,
+        message: "Subcategory already exists",
+        error: "Subcategory already exists",
+      });
     }
 
     // Create new subcategory
@@ -40,30 +37,36 @@ export const createSubCategory = asyncHandler(async (req: any, res: any) => {
     });
 
     return res.status(201).json({
+      success: true,
       message: "Subcategory created successfully",
       subcategory,
     });
   } catch (error: any) {
     console.error("Error creating subcategory:", error.message);
     return res.status(500).json({
-      error: "Server error",
+      success: false,
       message: error.message,
+      error: "Server error",
     });
   }
 });
 
-
 //Get all subcategories---------------------------------------------------------------------------------
 export const getAllSubCategories = asyncHandler(async (req: any, res: any) => {
   try {
-    const subcategories = await SubCategory.find().populate('mainCategory', 'name');
+    const subcategories = await SubCategory.find().populate(
+      "mainCategory",
+      "name"
+    );
     return res.status(200).json({
+      success: true,
       message: "Subcategories fetched successfully",
       subcategories,
     });
   } catch (error: any) {
     console.error("Error fetching subcategories:", error.message);
     return res.status(500).json({
+      success: false,
       error: "Server error",
       message: error.message,
     });
