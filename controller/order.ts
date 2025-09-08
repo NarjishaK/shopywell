@@ -103,3 +103,39 @@ export const getOrdersByUserId = asyncHandler(async (req: any, res: any) => {
     return sendError(res, 500, "Server error");
   }
 });
+
+//get all orders--------------------------------------------------------------------------------
+export const getAllOrders = asyncHandler(async (req: any, res: any) => {
+  try {
+    const orders = await Order.find()
+      .populate(
+        "products.product",
+        "name price description image category subCategory size color discount"
+      )
+      .populate("user", "name email addresses phone");
+
+    return sendSuccess(res, 200, "All orders fetched successfully", { orders });
+  } catch (error) {
+    console.error("Error fetching all orders:", error);
+    return sendError(res, 500, "Server error");
+  }
+});
+
+
+//delete order by id--------------------------------------------------------------------------------
+export const deleteOrder = asyncHandler(async (req: any, res: any) => {
+  try {
+    const orderId = req.params.id;
+    const order = await Order.findByIdAndDelete(orderId);
+
+    if (!order) {
+      console.log("Order not found with ID:", orderId);
+      return sendError(res, 404, "Order not found");
+    }
+
+    return sendSuccess(res, 200, "Order deleted successfully", {});
+  } catch (error) {
+    console.error("Error deleting order:", error);
+    return sendError(res, 500, "Server error");
+  }
+});

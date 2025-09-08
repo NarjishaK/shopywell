@@ -1,5 +1,6 @@
 // controller/category.ts
 import Category from "models/category";
+import SubCategory from "models/subcategory";
 import asyncHandler from "express-async-handler";
 import { sendSuccess, sendError } from "utils/common";
 
@@ -46,5 +47,31 @@ export const getAllCategories = asyncHandler(async (req: any, res: any) => {
   } catch (error: any) {
     console.error("Error fetching categories:", error.message);
     return sendError(res, 500, error.message);
+  }
+});
+
+
+// Delete a category by ID (including its subcategories) -------------------------------------------------------------------------------
+export const deleteCategory = asyncHandler(async (req: any, res: any) => {
+  try {
+    const categoryId = req.params.id;
+    // Check if category exists
+    const category = await Category
+        .findById(categoryId);
+    if (!category) {
+      console.log("Category not found");
+      return sendError(res, 404, "Category not found");
+    }
+
+    // Delete all subcategories associated with this category
+    await SubCategory.deleteMany({ mainCategory: categoryId });
+
+    // Delete the category
+    await Category.findByIdAndDelete(categoryId);
+
+    return sendSuccess(res, 200, "Category and its subcategories deleted successfully");
+  } catch (error) {
+    console.error("Error deleting category:", error);
+    return sendError(res, 500, "Server error");
   }
 });

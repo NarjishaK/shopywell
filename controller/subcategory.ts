@@ -50,3 +50,25 @@ export const getAllSubCategories = asyncHandler(async (req: any, res: any) => {
     return sendError(res, 500, error.message);
   }
 });
+
+
+// Delete a subcategory by ID -------------------------------------------------------------------------------
+export const deleteSubCategory = asyncHandler(async (req: any, res: any) => {
+  try {
+    const subcategoryId = req.params.id;
+
+    // Check if subcategory exists
+    const subcategory = await SubCategory.findById(subcategoryId);
+    if (!subcategory) {
+      console.log("Subcategory not found");
+      return sendError(res, 404, "Subcategory not found");
+    }
+
+    // Delete the subcategory
+    await SubCategory.findByIdAndDelete(subcategoryId);
+    return sendSuccess(res, 200, "Subcategory deleted successfully");
+  } catch (error: any) {
+    console.error("Error deleting subcategory:", error.message);
+    return sendError(res, 500, error.message);
+  }
+});

@@ -109,3 +109,22 @@ export const getProductById = async (req: Request, res: Response) => {
     return sendError(res, 500, "Server error");
   }
 };
+
+//delete product by ID------------------------------------------------------------------------------------------------
+export const deleteProduct = async (req: Request, res: Response) => {
+  try {
+    const productId = req.params.id;
+
+    const product = await Product.findByIdAndDelete(productId);
+
+    if (!product) {
+      console.log("Product not found with ID:", productId);
+      return sendError(res, 404, "Product not found");
+    }
+
+    return sendSuccess(res, 200, "Product deleted successfully");
+  } catch (error) {
+    console.error("Error deleting product:", error);
+    return sendError(res, 500, "Server error");
+  }
+};

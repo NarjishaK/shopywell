@@ -26,5 +26,6 @@ const router = express.Router();
 router.post('/', upload, productController.createProduct);
 router.get('/', productController.getAllProducts);
 router.get('/:id', productController.getProductById);
+router.delete('/:id', productController.deleteProduct);
 
 export default router;

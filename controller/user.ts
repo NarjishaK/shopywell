@@ -95,3 +95,65 @@ export const getUserById = asyncHandler(async (req: any, res: any) => {
     return sendError(res, 500, "Internal server error");
   }
 });
+
+
+//getAllUsers--------------------------------------------------------------------------------
+export const getAllUsers = asyncHandler(async (req: any, res: any) => {
+  try {
+    const users = await Users.find();
+    return sendSuccess(res, 200, "Users fetched successfully", { users });
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    return sendError(res, 500, "Internal server error");
+  }
+});
+
+//delete user by id--------------------------------------------------------------------------------
+export const deleteUser = asyncHandler(async (req: any, res: any) => {
+  try {
+    const user = await Users.findByIdAndDelete(req.params.id);
+    if (user) {
+      console.log("User deleted:", user);
+      return sendSuccess(res, 200, "User deleted successfully", {});
+    } else {
+      console.log("User not found");
+      return sendError(res, 404, "User not found");
+    }
+  } catch (error) {
+    console.error("Error deleting user:", error);
+    return sendError(res, 500, "Internal server error");
+  }
+});
+
+//update user by id--------------------------------------------------------------------------------
+export const updateUser = asyncHandler(async (req: any, res: any) => {
+  try {
+    const user = await Users.findById(req.params.id);
+
+    if (user) {
+      user.name = req.body.name || user.name;
+      user.email = req.body.email || user.email;
+      user.addresses = req.body.addresses || user.addresses;
+      user.phone = req.body.phone || user.phone;
+
+      if (req.body.password) {
+        user.password = req.body.password;
+      }
+
+      const updatedUser = await user.save();
+      return sendSuccess(res, 200, "User updated successfully", {
+        _id: updatedUser._id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        addresses: updatedUser.addresses,
+        phone: updatedUser.phone,
+      });
+    } else {
+      console.log("User not found");
+      return sendError(res, 404, "User not found");
+    }
+  } catch (error) {
+    console.error("Error updating user:", error);
+    return sendError(res, 500, "Internal server error");
+  }
+});

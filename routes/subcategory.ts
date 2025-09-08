@@ -6,5 +6,6 @@ const router = express.Router();
 
 router.post('/',  validate(subcategorySchema), subcategoryController.createSubCategory);
 router.get('/', subcategoryController.getAllSubCategories);
+router.delete('/:id', subcategoryController.deleteSubCategory);
 
 export default router;
