@@ -38,12 +38,17 @@ export const createUser = asyncHandler(async (req: any, res: any) => {
       });
     } else {
       console.log("Invalid user data");
-      return res.status(400).json({ error: "Invalid user data" });
-      
+      return res.status(400).json({
+        success: false,
+        error: "Invalid user data",
+        message: "Invalid user data",
+      });
     }
   } catch (error: any) {
     console.error("Error creating user:", error.message);
-    res.status(500).json({ error: "Internal server error" });
+    res
+      .status(500)
+      .json({ success: false, error: "Server error", message: error.message });
   }
 });
 
@@ -64,6 +69,8 @@ export const loginUser = asyncHandler(async (req: any, res: any) => {
       );
 
       res.status(200).json({
+        success: true,
+        message: "User logged in successfully",
         _id: user._id,
         name: user.name,
         email: user.email,
@@ -71,12 +78,16 @@ export const loginUser = asyncHandler(async (req: any, res: any) => {
       });
     } else {
       res.status(401).json({
+        success: false,
+        message: "Invalid email or password",
         error: "Invalid email or password",
       });
     }
   } catch (error) {
     console.error("Error logging in user:", error);
     res.status(500).json({
+      success: false,
+      message: "Internal server error",
       error: "Internal server error",
     });
   }
@@ -92,10 +103,20 @@ export const getUserById = asyncHandler(async (req: any, res: any) => {
       res.json(user);
     } else {
       console.log("User not found");
-      res.status(404).json({ error: "User not found" });
+      res.status(404).json({
+        success: false,
+        message: "User not found",
+        error: "User not found",
+      });
     }
   } catch (error) {
     console.error("Error fetching user:", error);
-    res.status(500).json({ error: "Internal server error" });
+    res
+      .status(500)
+      .json({
+        success: false,
+        message: "Internal server error",
+        error: "Internal server error",
+      });
   }
 });
